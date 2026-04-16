@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delaware County Transfer Tax Map</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f7f7f5; color: #1a1a1a; min-height: 100vh; padding: 2rem 1.5rem;
+  }
+  .page { max-width: 860px; margin: 0 auto; }
+  header { margin-bottom: 1.25rem; }
+  header h1 { font-size: 22px; font-weight: 500; color: #1a1a1a; margin-bottom: 4px; }
+  header p  { font-size: 13px; color: #666; }
+  .legend { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; }
+  .legend-swatch { width: 13px; height: 13px; border-radius: 3px; border: 0.5px solid #ccc; flex-shrink: 0; }
+  .map-wrapper { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1.25rem; position: relative; }
+  svg { display: block; width: 100%; }
+  .county-path { cursor: pointer; }
+  .tooltip {
+    position: absolute; display: none; background: #fff; border: 0.5px solid #ccc;
+    border-radius: 10px; padding: 12px 14px; font-size: 13px; max-width: 300px;
+    pointer-events: none; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .tt-county { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 0.5px solid #eee; }
+  .tt-row    { display: flex; gap: 8px; margin-bottom: 4px; }
+  .tt-label  { color: #888; min-width: 130px; font-size: 12px; flex-shrink: 0; }
+  .tt-value  { color: #1a1a1a; font-size: 12px; font-weight: 500; }
+  .tt-value.note { font-weight: 400; color: #444; line-height: 1.5; }
+  .tt-divider { border: none; border-top: 0.5px solid #eee; margin: 6px 0; }
+  .tt-total  { font-size: 13px; font-weight: 500; color: #1F4E79; margin-top: 6px; }
+  footer { margin-top: 1.25rem; font-size: 12px; color: #999; text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Delaware — County Real Estate Transfer Tax</h1>
+    <p>Hover over any county to see transfer tax details.</p>
+  </header>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch" style="background:#185FA5"></span>High county rate (&gt; 0.75%) — all three counties: 1.50%</div>
+  </div>
+  <div class="map-wrapper" id="map-wrapper">
+    <div id="map-container"></div>
+    <div class="tooltip" id="tooltip">
+      <div class="tt-county" id="tt-county"></div>
+      <div id="tt-rows"></div>
+    </div>
+  </div>
+  <footer>Data as of April 2026 &nbsp;&middot;&nbsp; Sources: Kent County Recorder of Deeds, New Castle County, Sussex County Recorder of Deeds, Delaware Form 5402</footer>
+</div>
+
+<script>
+const DATA = {
+  "10001": {
+    name: "Kent County",
+    countyRate: "1.50%",
+    stateRate:  "2.50%",
+    combined:   "4.00%",
+    pays:  "Split 50/50 (negotiable)",
+    firstTime: "State portion reduced; capped at $2,000 savings",
+    notes: "Most municipalities: 1.5% county + 2.5% state. Exceptions: Hartly, Kenton & Woodside charge 1% county + 3% state — still 4% total.",
+    source: "kentcountyde.gov"
+  },
+  "10003": {
+    name: "New Castle County",
+    countyRate: "1.50%",
+    stateRate:  "2.50%",
+    combined:   "4.00%",
+    pays:  "Split 50/50 (negotiable)",
+    firstTime: "State portion reduced; capped at $2,000 savings",
+    notes: "Wilmington adds a city-level transfer tax on top of county + state rates — the highest total burden in Delaware. County collects on behalf of Newark, Middletown, Delaware City, New Castle City, Smyrna & Clayton.",
+    source: "newcastlede.gov"
+  },
+  "10005": {
+    name: "Sussex County",
+    countyRate: "1.50%",
+    stateRate:  "2.50%",
+    combined:   "4.00%",
+    pays:  "Split 50/50 (negotiable)",
+    firstTime: "State portion reduced; capped at $2,000 savings",
+    notes: "Several towns levy additional transfer taxes: Georgetown 0.75%, Greenwood 0.75%, Laurel 0.75%, Seaford 0.75%, Delmar 1.00%. Ellendale & Milford are exempt from town tax.",
+    source: "sussexcountyde.gov"
+  }
+};
+
+const tooltip   = document.getElementById("tooltip");
+const wrapper   = document.getElementById("map-wrapper");
+
+function showTip(x, y, fips) {
+  const d = DATA[fips]; if (!d) return;
+  document.getElementById("tt-county").textContent = d.name;
+  document.getElementById("tt-rows").innerHTML = `
+    <div class="tt-row"><span class="tt-label">County rate</span><span class="tt-value">${d.countyRate}</span></div>
+    <div class="tt-row"><span class="tt-label">State rate</span><span class="tt-value">${d.stateRate}</span></div>
+    <hr class="tt-divider">
+    <div class="tt-row"><span class="tt-label">Combined total</span><span class="tt-value tt-total">${d.combined}</span></div>
+    <div class="tt-row"><span class="tt-label">Who pays</span><span class="tt-value">${d.pays}</span></div>
+    <div class="tt-row"><span class="tt-label">First-time buyer</span><span class="tt-value">${d.firstTime}</span></div>
+    <div class="tt-row"><span class="tt-label">Notes</span><span class="tt-value note">${d.notes}</span></div>
+  `;
+  const rect = wrapper.getBoundingClientRect();
+  const tw = 310, ww = wrapper.offsetWidth;
+  let lx = x + 14;
+  if (lx + tw > ww - 10) lx = x - tw - 14;
+  tooltip.style.left = lx + "px";
+  tooltip.style.top  = (y - 10) + "px";
+  tooltip.style.display = "block";
+}
+
+function hideTip() { tooltip.style.display = "none"; }
+
+const W = document.getElementById("map-container").offsetWidth || 700;
+const H = Math.round(W * 1.1);
+
+const svg = d3.select("#map-container").append("svg")
+  .attr("viewBox", `0 0 ${W} ${H}`)
+  .attr("width", "100%");
+
+const proj    = d3.geoMercator();
+const pathGen = d3.geoPath().projection(proj);
+
+fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json")
+  .then(r => r.json())
+  .then(us => {
+    const all      = topojson.feature(us, us.objects.counties).features;
+    const deCounties = all.filter(f => f.id.toString().startsWith("10"));
+
+    proj.fitSize([W, H], { type: "FeatureCollection", features: deCounties });
+    proj.scale(proj.scale() * 0.88);
+    proj.translate([W / 2, H / 2]);
+
+    const stateBorders = topojson.mesh(us, us.objects.states, (a, b) => a !== b);
+    const deState      = topojson.feature(us, us.objects.states).features.find(f => f.id === "10");
+
+    svg.append("path")
+      .datum(deState)
+      .attr("d", pathGen)
+      .attr("fill", "#f0f0f0")
+      .attr("stroke", "none");
+
+    svg.append("g").selectAll("path")
+      .data(deCounties)
+      .join("path")
+        .attr("class", "county-path")
+        .attr("d", pathGen)
+        .attr("fill", "#185FA5")
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+        .on("mouseover", function(evt, d) {
+          d3.select(this).attr("fill", "#0C447C").attr("stroke-width", 2.5);
+          const rect = wrapper.getBoundingClientRect();
+          const mx   = evt.clientX - rect.left;
+          const my   = evt.clientY - rect.top;
+          showTip(mx, my, d.id.toString());
+        })
+        .on("mousemove", function(evt) {
+          const rect = wrapper.getBoundingClientRect();
+          const mx   = evt.clientX - rect.left;
+          const my   = evt.clientY - rect.top;
+          const tw = 310, ww = wrapper.offsetWidth;
+          let lx = mx + 14;
+          if (lx + tw > ww - 10) lx = mx - tw - 14;
+          tooltip.style.left = lx + "px";
+          tooltip.style.top  = (my - 10) + "px";
+        })
+        .on("mouseleave", function() {
+          d3.select(this).attr("fill", "#185FA5").attr("stroke-width", 1.5);
+          hideTip();
+        });
+
+    const labelOffsets = { "10001": [0, 0], "10003": [0, 0], "10005": [0, 0] };
+
+    svg.append("g").selectAll("text")
+      .data(deCounties)
+      .join("text")
+        .attr("transform", d => {
+          const [cx, cy] = pathGen.centroid(d);
+          const off = labelOffsets[d.id.toString()] || [0, 0];
+          return `translate(${cx + off[0]}, ${cy + off[1]})`;
+        })
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
+        .attr("font-size", 13)
+        .attr("font-family", "sans-serif")
+        .attr("font-weight", "600")
+        .attr("fill", "#E6F1FB")
+        .attr("pointer-events", "none")
+        .text(d => {
+          const names = { "10001": "Kent", "10003": "New Castle", "10005": "Sussex" };
+          return names[d.id.toString()] || "";
+        });
+
+    svg.append("g").selectAll("text.rate")
+      .data(deCounties)
+      .join("text")
+        .attr("class", "rate")
+        .attr("transform", d => {
+          const [cx, cy] = pathGen.centroid(d);
+          return `translate(${cx}, ${cy + 20})`;
+        })
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
+        .attr("font-size", 11)
+        .attr("font-family", "sans-serif")
+        .attr("font-weight", "400")
+        .attr("fill", "#B5D4F4")
+        .attr("pointer-events", "none")
+        .text("4.00% combined");
+
+    svg.append("path")
+      .datum(deState)
+      .attr("d", pathGen)
+      .attr("fill", "none")
+      .attr("stroke", "#999")
+      .attr("stroke-width", 1);
+  });
+</script>
+</body>
+</html>
