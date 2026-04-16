@@ -8,63 +8,35 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #f7f7f5;
+    background: #ffffff;
     color: #1a1a1a;
     min-height: 100vh;
     padding: 2rem 1.5rem;
   }
+  .page { max-width: 1020px; margin: 0 auto; }
 
-  .page {
-    max-width: 960px;
-    margin: 0 auto;
-  }
-
-  header {
-    margin-bottom: 1.5rem;
-  }
-
-  header h1 {
-    font-size: 22px;
-    font-weight: 500;
-    color: #1a1a1a;
-    margin-bottom: 4px;
-  }
-
-  header p {
-    font-size: 13px;
-    color: #666;
-  }
+  header { margin-bottom: 1.25rem; }
+  header h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+  header p  { font-size: 14px; color: #444; }
 
   .legend {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 20px;
+    flex-wrap: wrap; margin-bottom: 1rem;
   }
-
   .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #555;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #333;
   }
-
   .legend-swatch {
-    width: 13px;
-    height: 13px;
-    border-radius: 3px;
-    border: 0.5px solid #ccc;
-    flex-shrink: 0;
+    width: 13px; height: 13px; border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0;
   }
 
   .map-wrapper {
-    background: #fff;
-    border: 0.5px solid #ddd;
+    background: #1a2635;
+    border: 1px solid #2a3a4a;
     border-radius: 12px;
     padding: 1.25rem;
   }
@@ -72,69 +44,32 @@
   svg { display: block; width: 100%; }
 
   .tooltip {
-    position: fixed;
-    display: none;
-    background: #fff;
-    border: 0.5px solid #ccc;
+    position: fixed; display: none;
+    background: #ffffff;
+    border: 1px solid #ccc;
     border-radius: 10px;
     padding: 12px 14px;
     font-size: 13px;
-    max-width: 290px;
+    max-width: 295px;
     pointer-events: none;
     z-index: 9999;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
   }
-
   .tt-state {
-    font-size: 15px;
-    font-weight: 500;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 0.5px solid #eee;
+    font-size: 15px; font-weight: 600; color: #1a1a1a;
+    margin-bottom: 8px; padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
   }
-
-  .tt-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-
-  .tt-label {
-    color: #888;
-    min-width: 120px;
-    font-size: 12px;
-    flex-shrink: 0;
-  }
-
-  .tt-value {
-    color: #1a1a1a;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .tt-value.note {
-    font-weight: 400;
-    color: #444;
-    line-height: 1.5;
-  }
-
-  .tt-badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 7px;
-    border-radius: 4px;
-  }
-
+  .tt-row   { display: flex; gap: 8px; margin-bottom: 4px; }
+  .tt-label { color: #777; min-width: 120px; font-size: 12px; flex-shrink: 0; }
+  .tt-value { color: #1a1a1a; font-size: 12px; font-weight: 500; }
+  .tt-value.note { font-weight: 400; color: #333; line-height: 1.5; }
+  .tt-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
   .badge-yes { background: #C6EFCE; color: #276221; }
   .badge-no  { background: #FFCCCC; color: #9C0006; }
 
   footer {
-    margin-top: 1.25rem;
-    font-size: 12px;
-    color: #999;
-    text-align: center;
+    margin-top: 1.25rem; font-size: 12px; color: #666; text-align: center;
   }
 
   @media (max-width: 600px) {
@@ -148,14 +83,14 @@
 
   <header>
     <h1>U.S. Real Estate Transfer Tax by State</h1>
-    <p>Hover over any state to see transfer tax details &mdash; rates, who pays, and local tax rules.</p>
+    <p>Hover over any state or callout label to see transfer tax details.</p>
   </header>
 
   <div class="legend">
-    <div class="legend-item"><span class="legend-swatch" style="background:#FFCCCC"></span>No transfer tax</div>
-    <div class="legend-item"><span class="legend-swatch" style="background:#C6EFCE"></span>Low (&lt; 0.25%)</div>
-    <div class="legend-item"><span class="legend-swatch" style="background:#85B7EB"></span>Mid (0.25% – 0.75%)</div>
-    <div class="legend-item"><span class="legend-swatch" style="background:#185FA5"></span>High (&gt; 0.75%)</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#FF6B6B;"></span>No transfer tax</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#66BB6A;"></span>Low (&lt; 0.25%)</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#42A5F5;"></span>Mid (0.25% – 0.75%)</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#1976D2;"></span>High (&gt; 0.75%)</div>
   </div>
 
   <div class="map-wrapper">
@@ -173,56 +108,56 @@
 
 <script>
 const TAX = {
-  "Alabama":      {tax:true,  name:"Recordation Tax",             rate:"0.10%",       per1k:"$1.00",   pays:"Negotiable",        local:true,  notes:"County may impose additional recordation tax. Mortgage tax also applies."},
-  "Alaska":       {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax authorized."},
-  "Arizona":      {tax:false, name:"Recording Fee Only",          rate:"Flat $2",     per1k:"Flat $2", pays:"N/A",               local:false, notes:"Only a flat $2 deed recording fee. No percentage-based transfer tax permitted."},
-  "Arkansas":     {tax:true,  name:"Real Property Transfer Tax",  rate:"0.33%",       per1k:"$3.30",   pays:"Seller",            local:false, notes:"$3.30 per $1,000 of consideration. No local additions."},
-  "California":   {tax:true,  name:"Documentary Transfer Tax",    rate:"0.11%",       per1k:"$1.10",   pays:"Negotiable",        local:true,  notes:"County: $1.10/$1,000. Cities may add more — LA up to 5.95%, SF up to 6.0% on $25M+."},
-  "Colorado":     {tax:false, name:"Documentary Fee (nominal)",   rate:"0.01%",       per1k:"$0.10",   pays:"Negotiable",        local:false, notes:"Minimal $0.01/$100 fee only. TABOR Amendment prohibits a true transfer tax."},
-  "Connecticut":  {tax:true,  name:"Conveyance Tax",              rate:"0.75%–2.25%", per1k:"Tiered",  pays:"Seller",            local:true,  notes:"0.75% up to $800k; 1.25% to $2.5M; 2.25% above. Municipal add-on up to 0.5%."},
-  "Delaware":     {tax:true,  name:"Transfer Tax",                rate:"2.50%",       per1k:"$25.00",  pays:"Split 50/50",       local:true,  notes:"State: 2.5%. Most counties add 1.5% → total 4.0%. First-time buyers pay only 0.75% state."},
-  "Florida":      {tax:true,  name:"Documentary Stamp Tax",       rate:"0.70%",       per1k:"$7.00",   pays:"Negotiable",        local:false, notes:"$0.70/$100. Miami-Dade: $0.60/$100 + $0.45/$100 surcharge on non-single-family."},
-  "Georgia":      {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.10%",       per1k:"$1.00",   pays:"Seller",            local:false, notes:"First $1,000 = $1 flat; each additional $100 = $0.10. No local taxes."},
-  "Hawaii":       {tax:true,  name:"Conveyance Tax",              rate:"0.10%–1.00%", per1k:"Tiered",  pays:"Seller",            local:false, notes:"Tiered: 0.10% up to $600k, scaling to 1.00% on $10M+."},
-  "Idaho":        {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax authorized."},
-  "Illinois":     {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.10%",       per1k:"$1.00",   pays:"Negotiable",        local:true,  notes:"State: $0.50/$500. Counties may add $0.25/$500. Chicago charges $10.50/$1,000."},
-  "Indiana":      {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax authorized."},
-  "Iowa":         {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.16%",       per1k:"$1.60",   pays:"Seller",            local:false, notes:"$0.80/$500 of consideration over $500. No local additions."},
-  "Kansas":       {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No transfer tax. A mortgage registration tax does apply."},
-  "Kentucky":     {tax:true,  name:"Transfer Tax",                rate:"0.10%",       per1k:"$1.00",   pays:"Seller",            local:false, notes:"$0.50/$500 of consideration. No local additions."},
-  "Louisiana":    {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or parish (county) transfer tax."},
-  "Maine":        {tax:true,  name:"Transfer Tax",                rate:"0.44%",       per1k:"$4.40",   pays:"Split 50/50",       local:false, notes:"$2.20/$500, split equally. First-time buyer's half is exempt."},
-  "Maryland":     {tax:true,  name:"State Transfer Tax",          rate:"0.50%",       per1k:"$5.00",   pays:"Negotiable",        local:true,  notes:"State: 0.50% (0.25% for first-time buyers). Counties add 0.50%–1.40%. Baltimore City total: 3.0%."},
-  "Massachusetts":{tax:true,  name:"Excise Tax",                  rate:"0.456%",      per1k:"$4.56",   pays:"Seller",            local:false, notes:"$4.56/$1,000. Barnstable County has an additional county excise tax."},
-  "Michigan":     {tax:true,  name:"State Transfer Tax",          rate:"0.75%",       per1k:"$7.50",   pays:"Seller",            local:true,  notes:"State: $3.75/$500. County adds $0.55–$0.75/$500. Combined total ~0.86%."},
-  "Minnesota":    {tax:true,  name:"Deed Tax",                    rate:"0.33%",       per1k:"$3.30",   pays:"Seller",            local:true,  notes:"0.0033 of net consideration. Hennepin & Ramsey counties add 0.0001 env. fund tax."},
-  "Mississippi":  {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax."},
-  "Missouri":     {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax authorized."},
-  "Montana":      {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax."},
-  "Nebraska":     {tax:true,  name:"Documentary Stamp Tax",       rate:"0.225%",      per1k:"$2.25",   pays:"Seller",            local:false, notes:"$2.25/$1,000 of consideration. No local additions."},
-  "Nevada":       {tax:true,  name:"Real Property Transfer Tax",  rate:"0.39%",       per1k:"$3.90",   pays:"Negotiable",        local:true,  notes:"State: $1.95/$500. Counties add $0.65–$1.30/$500. Combined total ~0.51%."},
-  "New Hampshire":{tax:true,  name:"Real Estate Transfer Tax",    rate:"0.75%",       per1k:"$7.50",   pays:"Split 50/50",       local:false, notes:"$0.75/$100 total ($7.50/$1,000), split equally. Each party pays 0.375% effectively."},
-  "New Jersey":   {tax:true,  name:"Realty Transfer Fee",         rate:"0.40%–2%+",   per1k:"Tiered",  pays:"Seller",            local:false, notes:"Tiered RTF. As of July 2025, all fees (incl. former mansion tax) paid fully by seller."},
-  "New Mexico":   {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax."},
-  "New York":     {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.40%–0.65%", per1k:"Tiered",  pays:"Seller",            local:true,  notes:"State: 0.40% up to $3M; 0.65% above. MCTD surcharge + NYC RPTT. Mansion tax: 1–3.9% on $1M+."},
-  "North Carolina":{tax:true, name:"Excise Tax on Deeds",         rate:"0.20%",       per1k:"$2.00",   pays:"Seller",            local:false, notes:"$1.00/$500 of consideration. No local additions permitted."},
-  "North Dakota": {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax."},
-  "Ohio":         {tax:true,  name:"Conveyance Fee",              rate:"0.10%",       per1k:"$1.00",   pays:"Seller",            local:true,  notes:"State: $0.10/$100. Counties may add up to $0.30/$100. Total up to $4.00/$1,000."},
-  "Oklahoma":     {tax:true,  name:"Documentary Stamp Tax",       rate:"0.15%",       per1k:"$1.50",   pays:"Seller",            local:false, notes:"$0.75/$500 of consideration. A mortgage tax also applies."},
-  "Oregon":       {tax:false, name:"None (mostly)",               rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state tax. New local taxes banned since 1997. Exception: Washington County charges $1/$1,000."},
-  "Pennsylvania": {tax:true,  name:"Realty Transfer Tax",         rate:"1.00%",       per1k:"$10.00",  pays:"Split 50/50",       local:true,  notes:"State: 1%. Locals add 1%–3%. Pittsburgh total: 5%. Philadelphia total: 4.278%."},
-  "Rhode Island": {tax:true,  name:"Real Estate Conveyance Tax",  rate:"0.46%",       per1k:"$4.60",   pays:"Seller",            local:false, notes:"$2.30/$500 of consideration. No local additions."},
-  "South Carolina":{tax:true, name:"Deed Recording Fee",          rate:"0.37%",       per1k:"$3.70",   pays:"Seller",            local:false, notes:"$1.85/$500 of consideration. No local additions."},
-  "South Dakota": {tax:true,  name:"Transfer Tax",                rate:"0.10%",       per1k:"$1.00",   pays:"Seller",            local:false, notes:"$0.50/$500 of consideration. No local additions."},
-  "Tennessee":    {tax:true,  name:"Documentary Tax",             rate:"0.37%",       per1k:"$3.70",   pays:"Seller",            local:false, notes:"$0.185/$100 of value. Mortgage recordation tax of 0.115% also applies."},
-  "Texas":        {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax authorized."},
-  "Utah":         {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax."},
-  "Vermont":      {tax:true,  name:"Property Transfer Tax",       rate:"0.50%–1.45%", per1k:"Tiered",  pays:"Buyer",             local:false, notes:"Primary residence: 0.50% on first $100k; 1.45% on balance. Other: 1.25%. Clean water surcharge: 0.20%."},
-  "Virginia":     {tax:true,  name:"Grantor's / Grantee's Tax",   rate:"0.10%–0.15%", per1k:"Tiered",  pays:"Split",             local:true,  notes:"Grantor: $0.15/$100 on first $10M. Grantee tax varies by locality. N. Virginia may add local tax."},
-  "Washington":   {tax:true,  name:"REET",                        rate:"1.10%–3.00%", per1k:"Tiered",  pays:"Seller",            local:true,  notes:"Tiered: 1.10% ≤$525k; 1.28% to $1.525M; 2.75% to $3.025M; 3.00% above. Local option adds 0.25–0.75%."},
-  "West Virginia":{tax:true,  name:"Excise Tax on Transfer",      rate:"0.22%",       per1k:"$2.20",   pays:"Split",             local:false, notes:"State: $1.10/$500. County: $0.55/$500. Combined: $1.65/$500 (0.33% total)."},
-  "Wisconsin":    {tax:true,  name:"Real Estate Transfer Fee",    rate:"0.30%",       per1k:"$3.00",   pays:"Seller",            local:false, notes:"$0.30/$100 of sale price. No local additions."},
-  "Wyoming":      {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",               local:false, notes:"No state or local transfer tax."}
+  "Alabama":      {tax:true,  name:"Recordation Tax",             rate:"0.10%",       per1k:"$1.00",   pays:"Negotiable",  local:true,  notes:"County may impose additional recordation tax. Mortgage tax also applies."},
+  "Alaska":       {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax authorized."},
+  "Arizona":      {tax:false, name:"Recording Fee Only",          rate:"Flat $2",     per1k:"Flat $2", pays:"N/A",         local:false, notes:"Only a flat $2 deed recording fee. No percentage-based transfer tax permitted."},
+  "Arkansas":     {tax:true,  name:"Real Property Transfer Tax",  rate:"0.33%",       per1k:"$3.30",   pays:"Seller",      local:false, notes:"$3.30 per $1,000 of consideration. No local additions."},
+  "California":   {tax:true,  name:"Documentary Transfer Tax",    rate:"0.11%",       per1k:"$1.10",   pays:"Negotiable",  local:true,  notes:"County: $1.10/$1,000. Cities may add more — LA up to 5.95%, SF up to 6.0% on $25M+."},
+  "Colorado":     {tax:false, name:"Documentary Fee (nominal)",   rate:"0.01%",       per1k:"$0.10",   pays:"Negotiable",  local:false, notes:"Minimal $0.01/$100 fee only. TABOR Amendment prohibits a true transfer tax."},
+  "Connecticut":  {tax:true,  name:"Conveyance Tax",              rate:"0.75%–2.25%", per1k:"Tiered",  pays:"Seller",      local:true,  notes:"0.75% up to $800k; 1.25% to $2.5M; 2.25% above. Municipal add-on up to 0.5%."},
+  "Delaware":     {tax:true,  name:"Transfer Tax",                rate:"2.50%",       per1k:"$25.00",  pays:"Split 50/50", local:true,  notes:"State: 2.5%. Most counties add 1.5% — total 4.0%. First-time buyers pay only 0.75% state."},
+  "Florida":      {tax:true,  name:"Documentary Stamp Tax",       rate:"0.70%",       per1k:"$7.00",   pays:"Negotiable",  local:false, notes:"$0.70/$100. Miami-Dade: $0.60/$100 + $0.45/$100 surcharge on non-single-family."},
+  "Georgia":      {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.10%",       per1k:"$1.00",   pays:"Seller",      local:false, notes:"First $1,000 = $1 flat; each additional $100 = $0.10. No local taxes."},
+  "Hawaii":       {tax:true,  name:"Conveyance Tax",              rate:"0.10%–1.00%", per1k:"Tiered",  pays:"Seller",      local:false, notes:"Tiered: 0.10% up to $600k, scaling to 1.00% on $10M+."},
+  "Idaho":        {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax authorized."},
+  "Illinois":     {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.10%",       per1k:"$1.00",   pays:"Negotiable",  local:true,  notes:"State: $0.50/$500. Counties may add $0.25/$500. Chicago charges $10.50/$1,000."},
+  "Indiana":      {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax authorized."},
+  "Iowa":         {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.16%",       per1k:"$1.60",   pays:"Seller",      local:false, notes:"$0.80/$500 of consideration over $500. No local additions."},
+  "Kansas":       {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No transfer tax. A mortgage registration tax does apply."},
+  "Kentucky":     {tax:true,  name:"Transfer Tax",                rate:"0.10%",       per1k:"$1.00",   pays:"Seller",      local:false, notes:"$0.50/$500 of consideration. No local additions."},
+  "Louisiana":    {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or parish (county) transfer tax."},
+  "Maine":        {tax:true,  name:"Transfer Tax",                rate:"0.44%",       per1k:"$4.40",   pays:"Split 50/50", local:false, notes:"$2.20/$500, split equally. First-time buyer's half is exempt."},
+  "Maryland":     {tax:true,  name:"State Transfer Tax",          rate:"0.50%",       per1k:"$5.00",   pays:"Negotiable",  local:true,  notes:"State: 0.50% (0.25% for first-time buyers). Counties add 0.50%–1.40%. Baltimore City total: 3.0%."},
+  "Massachusetts":{tax:true,  name:"Excise Tax",                  rate:"0.456%",      per1k:"$4.56",   pays:"Seller",      local:false, notes:"$4.56/$1,000. Barnstable County has an additional county excise tax."},
+  "Michigan":     {tax:true,  name:"State Transfer Tax",          rate:"0.75%",       per1k:"$7.50",   pays:"Seller",      local:true,  notes:"State: $3.75/$500. County adds $0.55–$0.75/$500. Combined total ~0.86%."},
+  "Minnesota":    {tax:true,  name:"Deed Tax",                    rate:"0.33%",       per1k:"$3.30",   pays:"Seller",      local:true,  notes:"0.0033 of net consideration. Hennepin & Ramsey counties add 0.0001 env. fund tax."},
+  "Mississippi":  {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax."},
+  "Missouri":     {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax authorized."},
+  "Montana":      {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax."},
+  "Nebraska":     {tax:true,  name:"Documentary Stamp Tax",       rate:"0.225%",      per1k:"$2.25",   pays:"Seller",      local:false, notes:"$2.25/$1,000 of consideration. No local additions."},
+  "Nevada":       {tax:true,  name:"Real Property Transfer Tax",  rate:"0.39%",       per1k:"$3.90",   pays:"Negotiable",  local:true,  notes:"State: $1.95/$500. Counties add $0.65–$1.30/$500. Combined total ~0.51%."},
+  "New Hampshire":{tax:true,  name:"Real Estate Transfer Tax",    rate:"0.75%",       per1k:"$7.50",   pays:"Split 50/50", local:false, notes:"$0.75/$100 total ($7.50/$1,000), split equally. Each party pays 0.375% effectively."},
+  "New Jersey":   {tax:true,  name:"Realty Transfer Fee",         rate:"0.40%–2%+",   per1k:"Tiered",  pays:"Seller",      local:false, notes:"Tiered RTF. As of July 2025, all fees (incl. former mansion tax) paid fully by seller."},
+  "New Mexico":   {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax."},
+  "New York":     {tax:true,  name:"Real Estate Transfer Tax",    rate:"0.40%–0.65%", per1k:"Tiered",  pays:"Seller",      local:true,  notes:"State: 0.40% up to $3M; 0.65% above. MCTD surcharge + NYC RPTT. Mansion tax: 1–3.9% on $1M+."},
+  "North Carolina":{tax:true, name:"Excise Tax on Deeds",         rate:"0.20%",       per1k:"$2.00",   pays:"Seller",      local:false, notes:"$1.00/$500 of consideration. No local additions permitted."},
+  "North Dakota": {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax."},
+  "Ohio":         {tax:true,  name:"Conveyance Fee",              rate:"0.10%",       per1k:"$1.00",   pays:"Seller",      local:true,  notes:"State: $0.10/$100. Counties may add up to $0.30/$100. Total up to $4.00/$1,000."},
+  "Oklahoma":     {tax:true,  name:"Documentary Stamp Tax",       rate:"0.15%",       per1k:"$1.50",   pays:"Seller",      local:false, notes:"$0.75/$500 of consideration. A mortgage tax also applies."},
+  "Oregon":       {tax:false, name:"None (mostly)",               rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state tax. New local taxes banned since 1997. Exception: Washington County charges $1/$1,000."},
+  "Pennsylvania": {tax:true,  name:"Realty Transfer Tax",         rate:"1.00%",       per1k:"$10.00",  pays:"Split 50/50", local:true,  notes:"State: 1%. Locals add 1%–3%. Pittsburgh total: 5%. Philadelphia total: 4.278%."},
+  "Rhode Island": {tax:true,  name:"Real Estate Conveyance Tax",  rate:"0.46%",       per1k:"$4.60",   pays:"Seller",      local:false, notes:"$2.30/$500 of consideration. No local additions."},
+  "South Carolina":{tax:true, name:"Deed Recording Fee",          rate:"0.37%",       per1k:"$3.70",   pays:"Seller",      local:false, notes:"$1.85/$500 of consideration. No local additions."},
+  "South Dakota": {tax:true,  name:"Transfer Tax",                rate:"0.10%",       per1k:"$1.00",   pays:"Seller",      local:false, notes:"$0.50/$500 of consideration. No local additions."},
+  "Tennessee":    {tax:true,  name:"Documentary Tax",             rate:"0.37%",       per1k:"$3.70",   pays:"Seller",      local:false, notes:"$0.185/$100 of value. Mortgage recordation tax of 0.115% also applies."},
+  "Texas":        {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax authorized."},
+  "Utah":         {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax."},
+  "Vermont":      {tax:true,  name:"Property Transfer Tax",       rate:"0.50%–1.45%", per1k:"Tiered",  pays:"Buyer",       local:false, notes:"Primary residence: 0.50% on first $100k; 1.45% on balance. Other: 1.25%. Clean water surcharge: 0.20%."},
+  "Virginia":     {tax:true,  name:"Grantor's / Grantee's Tax",   rate:"0.10%–0.15%", per1k:"Tiered",  pays:"Split",       local:true,  notes:"Grantor: $0.15/$100 on first $10M. Grantee tax varies by locality. N. Virginia may add local tax."},
+  "Washington":   {tax:true,  name:"REET",                        rate:"1.10%–3.00%", per1k:"Tiered",  pays:"Seller",      local:true,  notes:"Tiered: 1.10% up to $525k; 1.28% to $1.525M; 2.75% to $3.025M; 3.00% above. Local option adds 0.25–0.75%."},
+  "West Virginia":{tax:true,  name:"Excise Tax on Transfer",      rate:"0.22%",       per1k:"$2.20",   pays:"Split",       local:false, notes:"State: $1.10/$500. County: $0.55/$500. Combined: $1.65/$500 (0.33% total)."},
+  "Wisconsin":    {tax:true,  name:"Real Estate Transfer Fee",    rate:"0.30%",       per1k:"$3.00",   pays:"Seller",      local:false, notes:"$0.30/$100 of sale price. No local additions."},
+  "Wyoming":      {tax:false, name:"None",                        rate:"None",        per1k:"None",    pays:"N/A",         local:false, notes:"No state or local transfer tax."}
 };
 
 const FIPS = {
@@ -247,46 +182,68 @@ const ABBR = {
   "54":"WV","55":"WI","56":"WY"
 };
 
+const CALLOUTS = [
+  {fips:"33", label:"NEW HAMPSHIRE"},
+  {fips:"50", label:"VERMONT"},
+  {fips:"25", label:"MASSACHUSETTS"},
+  {fips:"44", label:"RHODE ISLAND"},
+  {fips:"09", label:"CONNECTICUT"},
+  {fips:"34", label:"NEW JERSEY"},
+  {fips:"10", label:"DELAWARE"},
+  {fips:"24", label:"MARYLAND"},
+];
+const CALLOUT_SET = new Set(CALLOUTS.map(c => c.fips));
 const SKIP_LABELS = new Set(["02","15","33","44","09","10","24","25","34","50","51","18"]);
+
+const W_MAP   = 860;
+const H       = Math.round(W_MAP * 0.63);
+const W_TOTAL = 1100;
+const LBL_X   = 910;
+const LBL_START = 56;
+const LBL_GAP   = 26;
 
 function fillColor(name) {
   const d = TAX[name];
-  if (!d || !d.tax) return "#FFCCCC";
+  if (!d || !d.tax) return "#FF6B6B";
   const r = parseFloat(d.rate);
-  if (isNaN(r) || r < 0.25) return "#C6EFCE";
-  if (r <= 0.75) return "#85B7EB";
-  return "#185FA5";
+  if (isNaN(r) || r < 0.25) return "#66BB6A";
+  if (r <= 0.75) return "#42A5F5";
+  return "#1976D2";
 }
 
 function labelColor(name) {
   const d = TAX[name];
-  if (!d || !d.tax) return "#9C0006";
+  if (!d || !d.tax) return "#fff";
   const r = parseFloat(d.rate);
-  if (isNaN(r) || r < 0.25) return "#276221";
-  if (r <= 0.75) return "#0C447C";
-  return "#E6F1FB";
+  if (isNaN(r) || r < 0.25) return "#fff";
+  if (r <= 0.75) return "#fff";
+  return "#ffffff";
+}
+
+function dotColor(name) {
+  return fillColor(name);
 }
 
 const tooltip = document.getElementById("tooltip");
 
 function showTip(evt, name) {
-  const d = TAX[name];
-  if (!d) return;
+  const d = TAX[name]; if (!d) return;
   document.getElementById("tt-state").textContent = name;
   const rows = [
-    ["Tax name",            d.name],
-    ["Has transfer tax",    d.tax ? "Yes" : "No", d.tax ? "yes" : "no"],
-    ["State rate",          d.rate],
-    ["Per $1,000",          d.per1k],
-    ["Who pays",            d.pays],
+    ["Tax name",            d.name,  ""],
+    ["Has transfer tax",    d.tax  ? "Yes" : "No",  d.tax  ? "yes" : "no"],
+    ["State rate",          d.rate,  ""],
+    ["Per $1,000",          d.per1k, ""],
+    ["Who pays",            d.pays,  ""],
     ["Local taxes allowed", d.local ? "Yes" : "No", d.local ? "yes" : "no"],
-    ["Notes",               d.notes, "note"]
+    ["Notes",               d.notes, "note"],
   ];
-  document.getElementById("tt-rows").innerHTML = rows.map(([k, v, cls]) => {
-    const valHtml = (k === "Has transfer tax" || k === "Local taxes allowed")
+  document.getElementById("tt-rows").innerHTML = rows.map(([k,v,cls]) => {
+    const badge = k === "Has transfer tax" || k === "Local taxes allowed";
+    const val   = badge
       ? `<span class="tt-badge badge-${cls}">${v}</span>`
-      : `<span class="tt-value ${cls || ''}">${v}</span>`;
-    return `<div class="tt-row"><span class="tt-label">${k}</span>${valHtml}</div>`;
+      : `<span class="tt-value ${cls}">${v}</span>`;
+    return `<div class="tt-row"><span class="tt-label">${k}</span>${val}</div>`;
   }).join("");
   tooltip.style.display = "block";
   moveTip(evt);
@@ -294,8 +251,7 @@ function showTip(evt, name) {
 
 function moveTip(evt) {
   const tw = 300, vw = window.innerWidth;
-  let x = evt.clientX + 16;
-  let y = evt.clientY - 12;
+  let x = evt.clientX + 16, y = evt.clientY - 12;
   if (x + tw > vw - 12) x = evt.clientX - tw - 16;
   if (y < 8) y = 8;
   tooltip.style.left = x + "px";
@@ -304,17 +260,12 @@ function moveTip(evt) {
 
 function hideTip() { tooltip.style.display = "none"; }
 
-const container = document.getElementById("map-container");
-const W = container.offsetWidth || 900;
-const H = Math.round(W * 0.62);
-
 const svg = d3.select("#map-container").append("svg")
-  .attr("viewBox", `0 0 ${W} ${H}`)
-  .attr("width", "100%")
-  .attr("height", H);
+  .attr("viewBox", `0 0 ${W_TOTAL} ${H}`)
+  .attr("width", "100%");
 
-const proj = d3.geoAlbersUsa().scale(W * 1.25).translate([W / 2, H / 2]);
-const path = d3.geoPath().projection(proj);
+const proj    = d3.geoAlbersUsa().scale(W_MAP * 1.25).translate([W_MAP / 2, H / 2]);
+const pathGen = d3.geoPath().projection(proj);
 
 fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json")
   .then(r => r.json())
@@ -324,34 +275,95 @@ fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json")
     svg.append("g").selectAll("path")
       .data(features)
       .join("path")
-        .attr("d", path)
-        .attr("fill",   d => fillColor(FIPS[d.id]))
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 0.8)
+        .attr("d", pathGen)
+        .attr("fill",         d => fillColor(FIPS[d.id]))
+        .attr("stroke",       "#1a2635")
+        .attr("stroke-width", 0.9)
+        .attr("class",        d => `sp sp-${d.id}`)
         .style("cursor", "pointer")
-        .style("transition", "filter 0.1s")
         .on("mouseover", function(evt, d) {
-          d3.select(this).attr("stroke", "#333").attr("stroke-width", 1.8);
+          d3.select(this).attr("stroke", "#ffffff").attr("stroke-width", 2);
           showTip(evt, FIPS[d.id]);
         })
         .on("mousemove", moveTip)
         .on("mouseleave", function() {
-          d3.select(this).attr("stroke", "#fff").attr("stroke-width", 0.8);
+          d3.select(this).attr("stroke", "#1a2635").attr("stroke-width", 0.9);
           hideTip();
         });
 
     svg.append("g").selectAll("text")
       .data(features.filter(d => !SKIP_LABELS.has(d.id) && ABBR[d.id]))
       .join("text")
-        .attr("transform", d => `translate(${path.centroid(d)})`)
-        .attr("text-anchor", "middle")
+        .attr("transform",         d => `translate(${pathGen.centroid(d)})`)
+        .attr("text-anchor",       "middle")
         .attr("dominant-baseline", "central")
-        .attr("font-size",   d => ["20","38","16","30","56","32","35","08","49"].includes(d.id) ? 7 : 8)
+        .attr("font-size",         d => ["20","38","16","30","56","32","35","08","49"].includes(d.id) ? 7 : 8)
+        .attr("font-family",       "sans-serif")
+        .attr("font-weight",       "700")
+        .attr("fill",              "#ffffff")
+        .attr("pointer-events",    "none")
+        .text(d => ABBR[d.id] || "");
+
+    const centroids = {};
+    features.forEach(d => { if (CALLOUT_SET.has(d.id)) centroids[d.id] = pathGen.centroid(d); });
+
+    const cg = svg.append("g");
+
+    CALLOUTS.forEach((co, i) => {
+      const name       = FIPS[co.fips];
+      const [cx, cy]   = centroids[co.fips] || [0, 0];
+      const ly         = LBL_START + i * LBL_GAP;
+      const elbowX     = LBL_X - 8;
+
+      cg.append("line")
+        .attr("x1", cx).attr("y1", cy)
+        .attr("x2", elbowX).attr("y2", ly)
+        .attr("stroke", "#8899aa").attr("stroke-width", 0.7)
+        .attr("pointer-events", "none");
+
+      cg.append("line")
+        .attr("x1", elbowX).attr("y1", ly)
+        .attr("x2", LBL_X - 2).attr("y2", ly)
+        .attr("stroke", "#8899aa").attr("stroke-width", 0.7)
+        .attr("pointer-events", "none");
+
+      cg.append("circle")
+        .attr("cx", cx).attr("cy", cy).attr("r", 2.5)
+        .attr("fill", fillColor(name))
+        .attr("stroke", "#1a2635").attr("stroke-width", 1)
+        .attr("pointer-events", "none");
+
+      const hitH = LBL_GAP - 2;
+      const g = cg.append("g")
+        .style("cursor", "pointer")
+        .on("mouseover", function(evt) {
+          d3.select(this).select("text").attr("fill", "#ffffff").attr("font-weight", "800");
+          d3.selectAll(`.sp-${co.fips}`).attr("stroke", "#ffffff").attr("stroke-width", 2);
+          showTip(evt, name);
+        })
+        .on("mousemove", moveTip)
+        .on("mouseleave", function() {
+          d3.select(this).select("text").attr("fill", "#ccddee").attr("font-weight", "600");
+          d3.selectAll(`.sp-${co.fips}`).attr("stroke", "#1a2635").attr("stroke-width", 0.9);
+          hideTip();
+        });
+
+      g.append("rect")
+        .attr("x", LBL_X - 2).attr("y", ly - hitH / 2)
+        .attr("width", 185).attr("height", hitH)
+        .attr("fill", "transparent");
+
+      g.append("text")
+        .attr("x", LBL_X).attr("y", ly)
+        .attr("dominant-baseline", "central")
+        .attr("font-size", 9.5)
         .attr("font-family", "sans-serif")
         .attr("font-weight", "600")
-        .attr("fill",        d => labelColor(FIPS[d.id]))
+        .attr("fill", "#ccddee")
+        .attr("letter-spacing", "0.4")
         .attr("pointer-events", "none")
-        .text(d => ABBR[d.id] || "");
+        .text(co.label);
+    });
   });
 </script>
 </body>
